@@ -1,5 +1,9 @@
 package com.zxcl.report.utils;
 
+/**
+ * 请求头获取
+ * @author zhouyaoming
+ */
 public class AssertUtils {
     /**
      * @description 获取请求头的token
