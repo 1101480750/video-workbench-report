@@ -21,4 +21,10 @@ public interface UserService {
      * @return
      */
     UserInfo login(LoginUserForm loginUserForm);
+
+    /**
+     * 用户登出
+     * @param token
+     */
+    void logout(String token);
 }

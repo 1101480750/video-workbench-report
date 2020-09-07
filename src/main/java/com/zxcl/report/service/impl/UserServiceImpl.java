@@ -2,17 +2,15 @@ package com.zxcl.report.service.impl;
 
 import com.alibaba.fastjson.JSONObject;
 import com.qcloud.cos.utils.Md5Utils;
+import com.zxcl.report.auth.config.RedisTokenStore;
 import com.zxcl.report.auth.config.ServerConfig;
 import com.zxcl.report.auth.utils.AuthConstant;
 import com.zxcl.report.cache.WebRedis;
 import com.zxcl.report.common.components.MessageSourceService;
 import com.zxcl.report.common.constant.MsgCdConstant;
 import com.zxcl.report.common.exception.BusinessException;
-import com.zxcl.report.common.response.RestResponse;
 import com.zxcl.report.enums.UrlEnum;
 import com.zxcl.report.form.LoginUserForm;
-import com.zxcl.report.form.TokenForm;
-import com.zxcl.report.info.LoginUserInfo;
 import com.zxcl.report.info.UserInfo;
 import com.zxcl.report.mapper.UserMapper;
 import com.zxcl.report.service.UserService;
@@ -26,7 +24,7 @@ import org.springframework.web.client.RestClientException;
 import org.springframework.web.client.RestTemplate;
 
 import javax.annotation.Resource;
-import java.util.Optional;
+
 /**
  * 用户
  *
@@ -50,8 +48,12 @@ public class UserServiceImpl implements UserService {
     @Autowired
     private UserMapper userMapper;
 
+    @Autowired
+    private RedisTokenStore redisTokenStore;
+
     /**
      * 用戶登录
+     *
      * @param loginUserForm
      * @return
      */
@@ -61,11 +63,11 @@ public class UserServiceImpl implements UserService {
         String accessToken = null;
         try {
             // 校验账号是否为空
-            if (StringUtils.isEmpty(loginUserForm.getAccount())){
+            if (StringUtils.isEmpty(loginUserForm.getAccount())) {
                 throw new BusinessException(MsgCdConstant.LOGIN_USER_ACCOUNT_EMPTY, mss.getOrigMessage(MsgCdConstant.LOGIN_USER_ACCOUNT_EMPTY));
             }
             // 校验密码是否为空
-            if (StringUtils.isEmpty(loginUserForm.getPassword())){
+            if (StringUtils.isEmpty(loginUserForm.getPassword())) {
                 throw new BusinessException(MsgCdConstant.LOGIN_USER_PASSWORD_EMPTY, mss.getOrigMessage(MsgCdConstant.LOGIN_USER_PASSWORD_EMPTY));
             }
             long queryBegin = System.currentTimeMillis();
@@ -97,11 +99,14 @@ public class UserServiceImpl implements UserService {
             String url = "http://localhost:40251" + UrlEnum.LOGIN_URL.getUrl();
             long clientBegin = System.currentTimeMillis();
             // 发送请求获取token
-            JSONObject loginObject  = restTemplate.postForObject(url, paramMap, JSONObject.class);
-            log.info("数据查询耗时：{}",(queryEnd - queryBegin));
-            log.info("服务调用：{}",( System.currentTimeMillis()- clientBegin));
+            JSONObject loginObject = restTemplate.postForObject(url, paramMap, JSONObject.class);
+            log.info("数据查询耗时：{}", (queryEnd - queryBegin));
+            log.info("服务调用：{}", (System.currentTimeMillis() - clientBegin));
             // 取出token
-             accessToken = loginObject.getString("access_token");
+            accessToken = loginObject.getString("access_token");
+            String refreshToken = loginObject.getString("refresh_token");
+            userInfo.setRefreshToken(refreshToken);
+            userInfo.setAccessToken(accessToken);
             UserInfo loginInfo = webRedis.getCache(accessToken, UserInfo.class);
             // 判断是否已经登录
             if (null != loginInfo) {
@@ -115,7 +120,23 @@ public class UserServiceImpl implements UserService {
         UserInfo loginUser = new UserInfo();
         loginUser.setUserId(userInfo.getUserId());
         loginUser.setUserName(userInfo.getUserName());
-        loginUser.setToken(accessToken);
+        loginUser.setAccessToken(accessToken);
         return loginUser;
+    }
+
+
+    /**
+     * 用户登出
+     *
+     * @param token
+     */
+    @Override
+    public void logout(String token) {
+        UserInfo loginInfo = webRedis.getCache(token, UserInfo.class);
+        if (null != loginInfo) {
+            webRedis.hDel(token, null);
+            redisTokenStore.removeAccessToken(token);
+            redisTokenStore.removeRefreshToken(loginInfo.getRefreshToken());
+        }
     }
 }

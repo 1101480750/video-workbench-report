@@ -4,13 +4,11 @@ import com.zxcl.report.common.request.RestRequest;
 import com.zxcl.report.common.response.RestResponse;
 import com.zxcl.report.form.LoginUserForm;
 import com.zxcl.report.service.UserService;
+import com.zxcl.report.utils.AssertUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
 import org.springframework.validation.annotation.Validated;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestMethod;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 /**
  * 登录
@@ -36,5 +34,17 @@ public class AuthController {
     public RestResponse loginSuccess(@Validated @RequestBody RestRequest<LoginUserForm> request) {
         LoginUserForm userForm = request.getBody();
         return RestResponse.success(userService.login(userForm));
+    }
+
+
+    /**
+     * @description 用户注销
+     * @param authorization
+     * @return
+     */
+    @RequestMapping(value = "/logout", method = RequestMethod.POST, produces = MediaType.APPLICATION_JSON_UTF8_VALUE, consumes = MediaType.APPLICATION_JSON_UTF8_VALUE)
+    public RestResponse logout(@RequestHeader("Authorization") String authorization){
+        userService.logout(AssertUtils.extracteToken(authorization));
+        return RestResponse.success();
     }
 }

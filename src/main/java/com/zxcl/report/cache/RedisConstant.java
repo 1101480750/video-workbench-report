@@ -21,39 +21,7 @@ public class RedisConstant {
 	/**
 	 * 默认redis的key前缀
 	 */
-	public static final String DEFAULT_KEY = "VIDEO_REDIS_KEY_";
-
-	/**
-	 * 后台登录验证码前缀
-	 */
-	public static final String USER_LOGIN_CODE_KEY = "USER_LOGIN_CODE_";
-
-	/**
-	 * 后台登录用户信息缓存前缀
-	 */
-	public static final String USER_LOGIN_INFO_KEY = "USER_LOGIN_INFO_";
-
-	/**
-	 * 	未接通视频的会话列表
-	 */
-	public static final String VIDEO_WAIT_LIST_KEY = "VIDEO_LIST_";
-	/**
-	 * 	接通中视频的会话列表
-	 */
-	public static final String VIDEO_CONNECT_LIST_KEY = "VIDEO_CONNECT_LIST_";
-	/**
-	 * 	接通中图片的会话列表
-	 */
-	public static final String VIDEO_IMG_LIST_KEY = "VIDEO_IMG_LIST_";
-	/**
-	 * 	国任历史资源
-	 */
-	public static final String GUOREN_HISTROY_KEY = "GUOREN_HISTROY_LIST_ENDTIME_";
-	/**
-	 * 	公司logo
-	 */
-	public static final String COMP_LOGO_KEY = "COMP_LOGO_";
-
+	public static final String DEFAULT_KEY = "MOBILE_REDIS_KEY_";
 
 	/******************** 移动端	 ************************/
     // 定义redis用户信息的后缀

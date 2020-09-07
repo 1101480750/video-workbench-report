@@ -118,9 +118,14 @@ public class UserInfo implements java.io.Serializable {
     private List<String> insTypeList;
 
     /**
-     * token
+     * 授权token
      */
-    private String token;
+    private String accessToken;
+
+    /**
+     * 刷新token
+     */
+    private String refreshToken;
 
 
 }
