@@ -1,6 +1,7 @@
 package com.zxcl.report.auth.error;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.zxcl.report.common.response.RestResponse;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.web.AuthenticationEntryPoint;
@@ -25,19 +26,27 @@ import java.util.Map;
 @Component
 public class AuthExceptionEntryPoint implements AuthenticationEntryPoint {
 
+    /**
+     * 授权异常
+     * @param request
+     * @param response
+     * @param authException
+     * @throws IOException
+     * @throws ServletException
+     */
     @Override
     public void commence(HttpServletRequest request, HttpServletResponse response, AuthenticationException authException) throws IOException, ServletException {
         Map map = new HashMap();
-        map.put("error", "401111111");
         map.put("message", authException.getMessage());
         map.put("path", request.getServletPath());
         map.put("timestamp", String.valueOf(LocalDateTime.now()));
-        log.info("异常信息：", map);
+        RestResponse restResponse = RestResponse.buildWithCode("401", "暂时无权限");
+        restResponse.setBody(map);
         response.setContentType("application/json");
         response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
         try {
             ObjectMapper mapper = new ObjectMapper();
-            mapper.writeValue(response.getOutputStream(), map);
+            mapper.writeValue(response.getOutputStream(), restResponse);
         } catch (Exception e) {
             throw new ServletException();
         }

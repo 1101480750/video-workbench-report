@@ -1,6 +1,7 @@
 package com.zxcl.report.auth.config;
 
 import com.zxcl.report.auth.error.MssWebResponseExceptionTranslator;
+import com.zxcl.report.auth.utils.AuthConstant;
 import com.zxcl.report.form.LoginUserForm;
 import com.zxcl.report.service.impl.UserDetailsServiceImpl;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -23,7 +24,6 @@ import org.springframework.security.oauth2.provider.token.DefaultTokenServices;
 import org.springframework.security.oauth2.provider.token.TokenStore;
 import org.springframework.security.oauth2.provider.token.store.JwtAccessTokenConverter;
 
-import javax.sql.DataSource;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -39,20 +39,8 @@ import java.util.Map;
 @EnableAuthorizationServer
 public class AuthorizationServerConfig extends AuthorizationServerConfigurerAdapter {
 
-    public static final String ROLE_ADMIN = "ADMIN";
-    //访问客户端密钥
-    public static final String CLIENT_SECRET = "123456";
-    //访问客户端ID
-    public static final String CLIENT_ID = "video-workbench-report";
-    //鉴权模式
-    public static final String GRANT_TYPE[] = {"password", "refresh_token"};
-
-
     @Autowired
     private AuthenticationManager authenticationManager;
-
-    @Autowired
-    private DataSource dataSource;
 
     @Autowired
     private LettuceConnectionFactory lettuceConnectionFactory;
@@ -68,11 +56,9 @@ public class AuthorizationServerConfig extends AuthorizationServerConfigurerAdap
 
     @Override
     public void configure(AuthorizationServerSecurityConfigurer security) throws Exception {
-//        security
-//                .allowFormAuthenticationForClients()
-//                .tokenKeyAccess("permitAll()")
-//                .checkTokenAccess("isAuthenticated()");
-
+        //允许表单认证
+//        security.allowFormAuthenticationForClients().tokenKeyAccess("isAuthenticated()")
+//                .checkTokenAccess("permitAll()");
         security
                 .tokenKeyAccess("permitAll()")
                 .checkTokenAccess("permitAll()")
@@ -87,38 +73,14 @@ public class AuthorizationServerConfig extends AuthorizationServerConfigurerAdap
      */
     @Override
     public void configure(ClientDetailsServiceConfigurer clients) throws Exception {
-//        clients.withClientDetails(clientDetails());
-        //配置在内存中，也可以从数据库中获取
-//        clients.inMemory() // 使用in-memory存储
-//                .withClient("video-workbench-report") // client_id   android
-//                .scopes("video-workbench-report")
-//                .secret("video-workbench-report")  // client_secret   android
-//                .authorizedGrantTypes("password", "authorization_code", "refresh_token") // 该client允许的授权类型
-//                .and()
-//                .withClient("webapp") // client_id
-//                .scopes("read")
-//                //.secret("webapp")  // client_secret
-//                .authorizedGrantTypes("implicit")// 该client允许的授权类型
-//                .and()
-//                .withClient("browser")
-//                .authorizedGrantTypes("refresh_token", "password")
-//                .scopes("read");
-
-//        String finalSecret = "{bcrypt}" + new BCryptPasswordEncoder().encode(CLIENT_SECRET);
+        // clients.withClientDetails(clientDetails());
         clients.inMemory()
-                .withClient(CLIENT_ID)
+                .withClient(AuthConstant.CLIENT_ID)
                 //密码模式及refresh_token模式
-                .authorizedGrantTypes(GRANT_TYPE[0], GRANT_TYPE[1])
+                .authorizedGrantTypes(AuthConstant.GRANT_TYPE[0], AuthConstant.GRANT_TYPE[1])
                 .scopes("all")
-                .secret(CLIENT_ID);
-
-
+                .secret(AuthConstant.CLIENT_ID);
     }
-
-//    @Bean
-//    public ClientDetailsService clientDetails() {
-//        return new JdbcClientDetailsService(dataSource);
-//    }
 
     @Bean
     public WebResponseExceptionTranslator webResponseExceptionTranslator() {
@@ -168,7 +130,7 @@ public class AuthorizationServerConfig extends AuthorizationServerConfigurerAdap
                 .authenticationManager(authenticationManager)
                 // 配置JwtAccessToken转换器
                 .accessTokenConverter(accessTokenConverter());
-//        endpoints.tokenServices(defaultTokenServices());
+        endpoints.tokenServices(defaultTokenServices());
 
         //认证异常翻译
         endpoints.exceptionTranslator(webResponseExceptionTranslator());

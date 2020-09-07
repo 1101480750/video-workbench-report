@@ -27,15 +27,16 @@ public class NoEncryptPasswordEncoder implements PasswordEncoder {
     }
 
 
+    /**
+     * 密码匹配
+     *
+     * @param charSequence
+     * @param s
+     * @return
+     */
     @Override
     public boolean matches(CharSequence charSequence, String s) {
-        //密码对比 密码对 true 反之 false
-        //CharSequence 数据库中的密码
-        //s 前台传入的密码
-        log.info("s：" + s);
-        log.info("s：" + passwordEncoder().encode(s));
-        log.info("charSequence++" + (String) charSequence);
-        log.info("s++" + passwordEncoder().encode((String) charSequence));
+        // log.info("s++" + passwordEncoder().encode((String) charSequence));
         String sequence = String.valueOf((String) charSequence);
         if (!s.equals(sequence)) {
             throw new BusinessException("125", "密码信息错误");

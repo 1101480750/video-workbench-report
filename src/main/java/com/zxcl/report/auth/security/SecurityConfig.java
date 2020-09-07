@@ -27,9 +27,13 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
     @Autowired
     private UserDetailsServiceImpl userDetailService;
 
+    /**
+     * 密码是否需要转码
+     * new BCryptPasswordEncoder()
+     * @return
+     */
     @Bean
     public PasswordEncoder passwordEncoder() {
-        //return new BCryptPasswordEncoder();
         return new NoEncryptPasswordEncoder();
     }
 

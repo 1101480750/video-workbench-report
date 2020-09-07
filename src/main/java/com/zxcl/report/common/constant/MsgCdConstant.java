@@ -37,6 +37,12 @@ public interface MsgCdConstant {
 
 
     /**
+     * 用户密码错误
+     */
+    String LOGIN_USER_CLIENT_ERROR= "303021100005";
+
+
+    /**
      * 支付宝相关
      */
     /**

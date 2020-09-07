@@ -1,8 +1,8 @@
 package com.zxcl.report.service;
 
-import com.zxcl.report.vo.UserVo;
+import com.zxcl.report.form.LoginUserForm;
 
 public interface TestService {
 
-    void getName(UserVo userVo);
+    void getName(LoginUserForm loginUserForm);
 }

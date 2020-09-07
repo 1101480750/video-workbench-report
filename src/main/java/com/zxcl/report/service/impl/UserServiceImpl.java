@@ -2,6 +2,7 @@ package com.zxcl.report.service.impl;
 
 import com.alibaba.fastjson.JSONObject;
 import com.qcloud.cos.utils.Md5Utils;
+import com.zxcl.report.auth.config.ServerConfig;
 import com.zxcl.report.auth.utils.AuthConstant;
 import com.zxcl.report.cache.WebRedis;
 import com.zxcl.report.common.components.MessageSourceService;
@@ -56,8 +57,8 @@ public class UserServiceImpl implements UserService {
      */
     @Override
     public UserInfo login(LoginUserForm loginUserForm) {
-        TokenForm token = null;
         UserInfo userInfo = null;
+        String accessToken = null;
         try {
             // 校验账号是否为空
             if (StringUtils.isEmpty(loginUserForm.getAccount())){
@@ -67,7 +68,9 @@ public class UserServiceImpl implements UserService {
             if (StringUtils.isEmpty(loginUserForm.getPassword())){
                 throw new BusinessException(MsgCdConstant.LOGIN_USER_PASSWORD_EMPTY, mss.getOrigMessage(MsgCdConstant.LOGIN_USER_PASSWORD_EMPTY));
             }
+            long queryBegin = System.currentTimeMillis();
             userInfo = userMapper.getUserByLoginName(loginUserForm.getAccount());
+            long queryEnd = System.currentTimeMillis();
             // 校验用户信息是否为空
             if (null == loginUserForm) {
                 throw new BusinessException(MsgCdConstant.LOGIN_USER_INFO_EMPTY, mss.getOrigMessage(MsgCdConstant.LOGIN_USER_INFO_EMPTY));
@@ -89,30 +92,30 @@ public class UserServiceImpl implements UserService {
              * 但是业务需求:登录接口是"auth/login"，由于我没研究过要怎么去修改oauth2内部的endpoint配置
              * 所以这里我用restTemplate(HTTP客户端)进行一次转发到oauth2内部的登录接口
              */
+            ServerConfig serverConfig = new ServerConfig();
+            String urls = serverConfig.getUrl() + UrlEnum.LOGIN_URL.getUrl();
             String url = "http://localhost:40251" + UrlEnum.LOGIN_URL.getUrl();
+            long clientBegin = System.currentTimeMillis();
             // 发送请求获取token
             JSONObject loginObject  = restTemplate.postForObject(url, paramMap, JSONObject.class);
+            log.info("数据查询耗时：{}",(queryEnd - queryBegin));
+            log.info("服务调用：{}",( System.currentTimeMillis()- clientBegin));
             // 取出token
-            String accessToken = loginObject.getString("access_token");
+             accessToken = loginObject.getString("access_token");
             UserInfo loginInfo = webRedis.getCache(accessToken, UserInfo.class);
             // 判断是否已经登录
             if (null != loginInfo) {
-                webRedis.hDel(accessToken, "");
+                webRedis.hDel(accessToken, null);
             }
             webRedis.setCache(accessToken, userInfo);
         } catch (RestClientException e) {
-            try {
-                e.printStackTrace();
-                //此处应该用自定义异常去返回，在这里我就不去具体实现了
-                //throw new Exception("username or password error");
-            } catch (Exception e1) {
-                e1.printStackTrace();
-            }
+            throw new BusinessException(MsgCdConstant.LOGIN_USER_CLIENT_ERROR, mss.getOrigMessage(MsgCdConstant.LOGIN_USER_CLIENT_ERROR));
         }
         //这里我拿到了登录成功后返回的token信息之后，我再进行一层封装，最后返回给前端的其实是LoginUserVO
         UserInfo loginUser = new UserInfo();
         loginUser.setUserId(userInfo.getUserId());
         loginUser.setUserName(userInfo.getUserName());
+        loginUser.setToken(accessToken);
         return loginUser;
     }
 }

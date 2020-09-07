@@ -4,7 +4,6 @@ import com.zxcl.report.common.request.RestRequest;
 import com.zxcl.report.common.response.RestResponse;
 import com.zxcl.report.form.LoginUserForm;
 import com.zxcl.report.service.UserService;
-import com.zxcl.report.vo.UserVo;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
 import org.springframework.validation.annotation.Validated;

@@ -9,6 +9,7 @@ import org.springframework.data.redis.core.RedisCallback;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.data.redis.serializer.RedisSerializer;
 import org.springframework.util.SerializationUtils;
+import org.springframework.util.StringUtils;
 
 import javax.annotation.Resource;
 import java.io.Serializable;
@@ -397,7 +398,11 @@ public abstract class BaseCache<T> implements Cache<T>{
 				RedisSerializer<String> serializer = redisTemplate.getStringSerializer();
 				byte[] bKey = serializer.serialize(cacheKey);
 				byte[] bField = serializer.serialize(field);
-				return connection.hDel(bKey, bField);
+				if (StringUtils.isEmpty(field)) {
+					return connection.del(bKey);
+				} else {
+					return connection.hDel(bKey, bField);
+				}
 			}
 		});
 
